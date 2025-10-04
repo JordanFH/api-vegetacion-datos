@@ -1,0 +1,82 @@
+# Archivos de Bytecode y Caché de Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyo
+*.pyd
+.Python
+
+# Entornos virtuales
+# Reemplaza 'venv' con el nombre de tu entorno si es diferente (ej. env, .venv)
+venv/
+.venv/
+env/
+.env/
+venv.bak/
+env.bak/
+
+# Archivos de dependencias y paquetes
+pip-wheel-metadata/
+.eggs/
+*.egg-info/
+dist/
+build/
+eggs/
+sdist/
+var/
+*.egg
+parts/
+bin/
+include/
+lib/
+lib64/
+local/
+share/
+wheels/
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Archivos del sistema operativo y editores de código
+.DS_Store
+Thumbs.db
+desktop.ini
+.vscode/
+.idea/
+*.swp
+*~
+*.sublime-project
+*.sublime-workspace
+
+# Archivos de configuración local y secretos
+.env
+*.env
+.env.*
+!.env.example
+config.ini
+secrets.yml
+
+# Bases de datos y archivos de logs
+*.db
+*.sqlite3
+*.log
+*.log.*
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Archivos de testing y cobertura
+.pytest_cache/
+.tox/
+.coverage
+.coverage.*
+htmlcov/
+nosetests.xml
+coverage.xml
+pytestdebug.log
+.hypothesis/
+
+# Cuadernos de Jupyter
+.ipynb_checkpoints
+
+# Archivos de build de Sphinx
+docs/_build/
