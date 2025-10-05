@@ -1,8 +1,10 @@
 # main.py
-
 import ee
+import os
+import json
 from fastapi import FastAPI, Query, HTTPException
 from typing import Optional
+from google.oauth2 import service_account
 
 # --- Inicialización ---
 app = FastAPI(
@@ -11,13 +13,38 @@ app = FastAPI(
     version="1.0.0",
 )
 
-# Bloque de conexión corregido
+# Bloque de conexión con Service Account
 try:
-    # Esta es la línea con la indentación y el project ID corregidos
-    ee.Initialize(project='api-vegetacion-datos', opt_url='https://earthengine-highvolume.googleapis.com')
+    # Intentar obtener credenciales desde variable de entorno
+    credentials_json = os.getenv('GOOGLE_APPLICATION_CREDENTIALS_JSON')
+    
+    if credentials_json:
+        # Si las credenciales están en formato JSON string
+        credentials_dict = json.loads(credentials_json)
+        credentials = service_account.Credentials.from_service_account_info(
+            credentials_dict,
+            scopes=['https://www.googleapis.com/auth/earthengine']
+        )
+        ee.Initialize(
+            credentials=credentials,
+            project='api-vegetacion-datos',
+            opt_url='https://earthengine-highvolume.googleapis.com'
+        )
+    else:
+        # Si las credenciales están en un archivo
+        credentials_path = os.getenv('GOOGLE_APPLICATION_CREDENTIALS', '/app/credentials.json')
+        credentials = service_account.Credentials.from_service_account_file(
+            credentials_path,
+            scopes=['https://www.googleapis.com/auth/earthengine']
+        )
+        ee.Initialize(
+            credentials=credentials,
+            project='api-vegetacion-datos',
+            opt_url='https://earthengine-highvolume.googleapis.com'
+        )
+    
     print("✅ Conexión con Google Earth Engine exitosa.")
 except Exception as e:
-    # Imprimimos un error más detallado si la conexión falla
     print(f"❌ Error al conectar con Google Earth Engine: {e}")
     raise
 
@@ -33,7 +60,7 @@ async def obtener_patrones_vegetacion(
         punto_de_interes = ee.Geometry.Point(lon, lat)
         coleccion_imagenes = ee.ImageCollection('MODIS/061/MOD13Q1').select('NDVI')
         coleccion_filtrada = coleccion_imagenes.filterDate(ee.Date(fecha_inicio), ee.Date(fecha_fin))
-
+        
         def extraer_valor_ndvi(imagen):
             valor = imagen.reduceRegions(
                 collection=punto_de_interes,
@@ -41,7 +68,7 @@ async def obtener_patrones_vegetacion(
                 scale=250
             ).first()
             return valor.set('date', imagen.date().format('YYYY-MM-dd'))
-
+        
         serie_temporal = coleccion_filtrada.map(extraer_valor_ndvi)
         lista_resultados = serie_temporal.getInfo()['features']
         
@@ -56,8 +83,8 @@ async def obtener_patrones_vegetacion(
                 })
         
         if not respuesta_formateada:
-             raise HTTPException(status_code=404, detail="No se encontraron datos de NDVI para la ubicación y fechas especificadas.")
-
+            raise HTTPException(status_code=404, detail="No se encontraron datos de NDVI para la ubicación y fechas especificadas.")
+        
         return {
             "ubicacion": {"lat": lat, "lon": lon},
             "rango_fechas": {"inicio": fecha_inicio, "fin": fecha_fin},
